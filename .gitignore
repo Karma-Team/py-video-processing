@@ -1,2 +1,6 @@
 # Environnement virtuel
+.idea/
 venv/
+__pycache__
+*.mp4
+*.png

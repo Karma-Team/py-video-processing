@@ -83,14 +83,14 @@ test = angle_detection(deriveImgX, posOrigin, -1, True)
 print(posOrigin, test)
 scoreRight = [angle_detection(deriveImgX, (x, UpYLine), 1) for x in range(2*dimX//3, dimX - 5)]
 scoreLeft = [angle_detection(deriveImgX, (x, UpYLine), -1) for x in range(0, dimX//3)]
-posMaxScoreRight = np.argmax(scoreRight) + 2*dimX//3
+posTopRightX = np.argmax(scoreRight) + 2 * dimX // 3
 maxScoreRight = scoreRight[np.argmax(scoreRight)]
-posMaxScoreLeft = np.argmax(scoreLeft)
-maxScoreLeft = scoreLeft[posMaxScoreLeft]
+posTopLeftX = np.argmax(scoreLeft)
+maxScoreLeft = scoreLeft[posTopLeftX]
 scoreRight = [(255 * s) / maxScoreRight for s in scoreRight]
 scoreLeft = [(255 * s) / maxScoreLeft for s in scoreLeft]
 
-print("Left", posMaxScoreLeft, maxScoreLeft)
+print("Left", posTopLeftX, maxScoreLeft)
 
 # Follow Line
 def max_move(img, posOrigin, dir):
@@ -109,15 +109,27 @@ def max_move(img, posOrigin, dir):
     else:
         return posOrigin[0] + 2*dir, posOrigin[1] + 1
 
-posOriginRight = (posMaxScoreRight, UpYLine)
+
+posOriginRight = (posTopRightX, UpYLine)
 while posOriginRight[0] < dimX - 2:
     posOriginRight = max_move(deriveImgX, posOriginRight, 1)
 
-posOriginLeft = (posMaxScoreLeft, UpYLine)
+posOriginLeft = (posTopLeftX, UpYLine)
 while posOriginLeft[0] > 0 + 2:
     posOriginLeft = max_move(deriveImgX, posOriginLeft, -1)
 
+# Line equation
+posUpLeft = (posTopLeftX, UpYLine)
+leftLineA = (posOriginLeft[1] - posUpLeft[1])/(posOriginLeft[0] - posUpLeft[0])
+leftLineB = posOriginLeft[1] - leftLineA * posOriginLeft[0]
+posBotLeftX = (DownYLine - leftLineB) / leftLineA
 
+posUpRight = (posTopRightX, UpYLine)
+RightLineA = (posOriginRight[1] - posUpRight[1])/(posOriginRight[0] - posUpRight[0])
+RightLineB = posOriginRight[1] - RightLineA * posOriginRight[0]
+posBotRightX = (DownYLine - RightLineB) / RightLineA
+
+print("posBotLeftX", posBotLeftX, "posBotRightX", posBotRightX)
 
 # Print output
 
@@ -137,13 +149,18 @@ for x in range(2*dimX//3, dimX - 5):
 for x in range(0, dimX//3):
     deriveImgXBGRLine = cv2.line(deriveImgXBGR, (x, UpYLine), (x, UpYLine), (0, scoreLeft[x], 0), 1)
 
-deriveImgXBGRLine = cv2.circle(deriveImgXBGRLine, center=(posMaxScoreLeft, UpYLine), radius=5, color=(255,255,0), thickness=1)
-deriveImgXBGRLine = cv2.circle(deriveImgXBGRLine, center=(posMaxScoreRight, UpYLine), radius=5, color=(255,255,0), thickness=1)
+deriveImgXBGRLine = cv2.circle(deriveImgXBGRLine, center=(posTopLeftX, UpYLine), radius=5, color=(255, 255, 0), thickness=1)
+deriveImgXBGRLine = cv2.circle(deriveImgXBGRLine, center=(posTopRightX, UpYLine), radius=5, color=(255, 255, 0), thickness=1)
 #deriveImgXBGRLine = cv2.circle(deriveImgXBGRLine, center=posOrigin, radius=6, color=(0,255,255), thickness=1)
 
 deriveImgXBGRLine = cv2.circle(deriveImgXBGRLine, center=posOriginRight, radius=5, color=(255,0,255), thickness=1)
 deriveImgXBGRLine = cv2.circle(deriveImgXBGRLine, center=posOriginLeft, radius=5, color=(255,0,255), thickness=1)
 
+deriveImgXBGRLine = cv2.line(deriveImgXBGR, (dimX//2, 0), (dimX//2, dimY), (0, 128, 255), 1)
+midTop = int(round((posTopRightX - posTopLeftX) / 2 + posTopLeftX))
+midBot = int(round((posBotRightX - posBotLeftX) / 2 + posBotLeftX))
+print(midTop, UpYLine, midBot, UpYLine)
+deriveImgXBGRLine = cv2.line(deriveImgXBGR, (midTop, UpYLine), (midBot, DownYLine), (255, 128, 0), 1)
 
 cv2.imshow("imgLine", imgLine)
 cv2.imshow("deriveImgXBGRLine", deriveImgXBGRLine)
